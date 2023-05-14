@@ -1,0 +1,45 @@
+import sqlite3
+import pandas as pd
+
+connection = sqlite3.connect('books.db')
+pd.options.display.max_columns = 10
+print("Authors Table Contents")
+print(pd.read_sql('SELECT * FROM authors', connection, index_col=['id']))
+print("\nTitles Table Contents")
+print(pd.read_sql('SELECT * FROM titles', connection))
+print("\nid and isbn composite primary key")
+print(pd.read_sql('SELECT * FROM author_ISBN', connection))
+print("\nFirst and Last Names from authors")
+print(pd.read_sql('SELECT first, last FROM authors', connection))
+print("\nWHERE Clause")
+print(pd.read_sql("""SELECT title, edition, copyright FROM titles WHERE copyright > '2016'""", connection))
+print("\nZero or more Characters")
+print(pd.read_sql("""SELECT id, first, last FROM authors WHERE last LIKE 'D%'""",connection, index_col=['id']))
+print("\n Pattern Matching any character")
+print(pd.read_sql("""SELECT id, first, last FROM authors WHERE first LIKE '_b%'""",connection, index_col=['id']))
+print("ORDER BY")
+print(pd.read_sql('SELECT title FROM titles ORDER BY title ASC',connection))
+print("\nsort the authors’ names by last name, then by first name for "
+      "any authors who have the same last name")
+print(pd.read_sql("""SELECT id, first, last FROM authors ORDER BY last, first""",connection, index_col=['id']))
+print("\nsort the authors in descending order by last name and ascending order by first name "
+      "for any authors who have the same last name:")
+print(pd.read_sql("""SELECT id, first, last FROM authors ORDER BY last DESC, first ASC""",connection, index_col=['id']))
+print("\n WHERE and ORDER BY")
+print(pd.read_sql("""SELECT isbn, title, edition, copyright FROM titles WHERE title LIKE '%How to Program'ORDER BY title""", connection))
+print("Inner Join")
+print(pd.read_sql("select first, last, isbn from authors inner join"
+                  " author_ISBN on authors.id = author_ISBN.id order by last,first", connection).head())
+
+print("INSERT STATEMENT")
+cursor = connection.cursor()
+cursor = cursor.execute("""INSERT INTO authors (first, last) VALUES ('Sue', 'Red')""")
+print(pd.read_sql("select id,first, last from authors",connection, index_col = ['id']))
+print("UPDATE STATEMENT")
+cursor = cursor.execute("""UPDATE authors SET last='Black' WHERE last='Red' AND first='Sue'""")
+print(pd.read_sql("select * from authors",connection, index_col = ["id"]))
+print("Row Count", cursor.rowcount)
+print("DELETE A ROW")
+cursor = cursor.execute('DELETE FROM authors WHERE id=6')
+print(pd.read_sql('SELECT id, first, last FROM authors',connection, index_col=['id']))
+connection.close()
